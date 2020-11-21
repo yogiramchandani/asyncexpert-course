@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
 {
     [DisassemblyDiagnoser(exportCombinedDisassemblyReport: true)]
+    [MemoryDiagnoser]
     public class FibonacciCalc
     {
         // HOMEWORK:
@@ -26,14 +28,30 @@ namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
         [ArgumentsSource(nameof(Data))]
         public ulong RecursiveWithMemoization(ulong n)
         {
-            return 0;
+            var lookup = new ulong[n + 1];
+            return RecursiveWithMemoization(n, lookup);
+        }
+
+        private ulong RecursiveWithMemoization(ulong n, ulong[] lookup)
+        {
+            if (n == 1 || n == 2) return 1;
+            if (lookup[n] == default) lookup[n] = RecursiveWithMemoization(n - 2, lookup) + RecursiveWithMemoization(n - 1, lookup);
+            return lookup[n];
         }
         
         [Benchmark]
         [ArgumentsSource(nameof(Data))]
         public ulong Iterative(ulong n)
         {
-            return 0;
+            ulong prev = 1;
+            ulong result = 1;
+            for(ulong i = 3; i <= n; i++)
+            {
+                var temp = result;
+                result += prev;
+                prev = temp;
+            }
+            return result;
         }
 
         public IEnumerable<ulong> Data()
